@@ -1,4 +1,4 @@
-# Project Title
+# Files Manager
 
 This project is a simple platform for uploading and managing files.
 
