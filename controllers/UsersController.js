@@ -21,3 +21,22 @@ exports.postNew = async function postNew(req, res) {
   const id = `${user.insertedId}`;
   res.status(201).json({ id, email });
 };
+exports.getMe = async function getMe(req, res) {
+  const token = req.headers['x-token'];
+  if (!token) {
+    res.status(401).json({ error: 'Unauthorized' });
+    return;
+  }
+  const key = 'auth_' + token;
+  const userId = await redisClient.get(key);
+  if (!userId) {
+    res.status(401).json({ error: 'Unauthorized' });
+    return;
+  }
+  const user = await dbClient.getUserById(userId);
+  if (!user) {
+    res.status(401).json({ error: 'Unauthorized' });
+    return;
+  }
+  res.status(200).json({ id: user._id, email: user.email });
+};
