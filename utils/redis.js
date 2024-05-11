@@ -16,9 +16,7 @@ class RedisClient {
   }
 
   async get(key) {
-    const getAsync = promisify(this.client.get).bind(this.client);
-    const value = await getAsync(key);
-    return value;
+    return promisify(this.client.get).bind(this.client)(key);
   }
 
   async set(key, value, duration) {
