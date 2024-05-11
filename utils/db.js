@@ -24,12 +24,20 @@ class DBClient {
     return allUsers.length;
   }
 
-  async nbFiles() {
-    // returns the number of all files in the database;
+  async createUser(email, hashedPw) {
+    // inserst a new user into the database
     const database = this.client.db(this.database);
-    const collection = database.collection('files');
-    const allFiles = await collection.find({}).toArray();
-    return allFiles.length;
+    const collection = database.collection('users');
+    const newUser = await collection.insertOne({ email, password: hashedPw });
+    return newUser;
+  }
+
+  async userExist(email) {
+    // checks if a user with an email exists in the database
+    const database = this.client.db(this.database);
+    const collection = database.collection('users');
+    const user = await collection.find({ email }).toArray();
+    return user;
   }
 }
 
