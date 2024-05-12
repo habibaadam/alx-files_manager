@@ -1,9 +1,78 @@
-import { ObjectId } from 'mongodb';
-import { v4 as uuidv4 } from 'uuid';
-import dbClient from '../utils/db';
-import redisClient from '../utils/redis';
+const fs = require('fs');
+const path = require('path');
+const uuid = require('uuid');
+const dbClient = require('../utils/db');
+const redisClient = require('../utils/redis');
 
-const { promisify } = require('util');
-const mkdir = promisify(require('fs').mkdir);
+// eslint-disable-next-line consistent-return
+exports.postUpload = async function postUpload(req, res) {
+  const token = req.get('X-token');
+  const key = `auth_${token}`;
+  const userId = await redisClient.get(key);
 
-const fs = require('fs').promises;
+  if (!userId) {
+    res.status(401).json({ error: 'Unauthorized' });
+    return;
+  }
+
+  const {
+    name, type, parentId, isPublic, data,
+  } = req.body;
+  if (!name) {
+    res.status(400).json({ error: 'Missing name' });
+    return;
+  }
+
+  const accepted = ['file', 'folder', 'image'];
+  if (!type || !accepted.includes(type)) {
+    res.status(400).json({ error: 'Missing type' });
+    return;
+  }
+
+  if (!data && type !== 'folder') {
+    res.status(400).json({ error: 'Missing data' });
+    return;
+  }
+
+  if (parentId) {
+    const checkfile = await dbClient.findFile(parentId);
+    if (!checkfile) {
+      res.status(400).json({ error: 'Parent not found' });
+      return;
+    }
+    if (checkfile.type !== 'folder') {
+      res.status(400).json({ error: 'Parent is not a folder' });
+      return;
+    }
+  }
+
+  if (type === 'folder') {
+    const addedFile = await dbClient.addFile(
+      userId, name, isPublic, parentId, type,
+    );
+    res.status(201).json(addedFile);
+  } else {
+    const folderPath = process.env.FOLDER_PATH || '/tmp/files_manager';
+    if (!fs.existsSync(folderPath)) {
+      fs.mkdirSync(folderPath, { recursive: true });
+    }
+    const filename = uuid.v4();
+    const filePath = path.join(folderPath, filename);
+    const decodedData = Buffer.from(data, 'base64');
+    fs.writeFileSync(filePath, decodedData);
+
+    const addedFile = await dbClient.addFile(
+      userId, name, isPublic, parentId, type, filePath,
+    );
+    res.status(201).json(
+      {
+        id: addedFile.id,
+        userId: addedFile.userId,
+        name: addedFile.name,
+        parentId: addedFile.parentId,
+        type: addedFile.type,
+        isPublic: addedFile.isPublic,
+      },
+    );
+  }
+};
