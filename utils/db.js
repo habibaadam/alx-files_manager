@@ -47,6 +47,45 @@ class DBClient {
     const user = await collection.findOne({ _id: ObjectId(id) });
     return user;
   }
+
+  async addFile(userId, name, isPublic = false, parentId = 0, type, localpath = null) {
+  // inserts a file, folder or image into the database
+    const database = this.client.db(this.database);
+    const collection = database.collection('files');
+    // if a path is provided
+    if (localpath) {
+      await collection.insertOne({
+        userId,
+        name,
+        type,
+        isPublic,
+        parentId,
+        localpath,
+      });
+    } else {
+      // if no path is provided
+      await collection.insertOne({
+        userId,
+        name,
+        type,
+        isPublic,
+        parentId,
+      });
+    }
+
+    const newFile = await collection.findOne({ name });
+    return {
+      id: newFile._id, userId, name, type, isPublic, parentId,
+    };
+  }
+
+  async findFile(parentId) {
+    // checks and finds a file based on its parentId
+    const database = this.client.db(this.database);
+    const collection = database.collection('files');
+    const existingFile = await collection.findOne({ _id: ObjectId(parentId) });
+    return existingFile;
+  }
 }
 
 const dbClient = new DBClient();
