@@ -114,3 +114,17 @@ exports.getIndex = async function getIndex(req, res) {
   const files = await dbClient.getFilesByUserAndParent(userId, parentId, page);
   res.json(files);
 };
+exports.putPublish = async function putPublish(req, res) {
+  const token = req.get('X-token')
+  const key = `auth_${token}`
+  const userId = await redisClient.get(key);
+
+  if (!userId) {
+    res.status(401).json({ error: 'Unauthorized' });
+    return;
+  }
+  const { id, isPublic = True } = req.params; 
+  const file = await dbClient.getFile(id);
+}
+
+  
