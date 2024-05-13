@@ -2,7 +2,7 @@ const express = require('express');
 const appController = require('../controllers/AppController');
 const { postNew, getMe } = require('../controllers/UsersController');
 const { getConnect, getDisconnect } = require('../controllers/AuthController');
-const { postUpload,getShow,getIndex} = require('../controllers/FilesController');
+const { postUpload, getShow, getIndex } = require('../controllers/FilesController');
 
 const router = express.Router();
 router.get('/status', appController.getStatus); // definition of getStatus
