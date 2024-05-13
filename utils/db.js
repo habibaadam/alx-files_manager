@@ -106,6 +106,13 @@ class DBClient {
     ]).toArray();
     return files;
   }
+
+  async updateFile(fileId, update) {
+    // updates a file based on the fileid and update statement
+    const database = this.client.db(this.database);
+    const collection = database.collection('files');
+    await collection.updateOne({ _id: ObjectId(fileId) }, { $set: update });
+  }
 }
 
 const dbClient = new DBClient();
