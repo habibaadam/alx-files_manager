@@ -3,7 +3,7 @@ const appController = require('../controllers/AppController');
 const { postNew, getMe } = require('../controllers/UsersController');
 const { getConnect, getDisconnect } = require('../controllers/AuthController');
 const { postUpload, getShow, getIndex } = require('../controllers/FilesController');
-const { putPublish, putUnpublish } = require('../controllers/FilesController');
+const { putPublish, putUnpublish, getFile } = require('../controllers/FilesController');
 
 const router = express.Router();
 router.get('/status', appController.getStatus); // definition of getStatus
@@ -17,5 +17,6 @@ router.get('/files/:id', getShow); // definition of getShow
 router.get('/files', getIndex); // definition of getIndex
 router.put('/files/:id/publish', putPublish); // definition of putPublish
 router.put('/files/:id/unpublish', putUnpublish); // definition of putUnpublish
+router.get('/files/:id/data', getFile); // definition of getFile route
 
 module.exports = router;
