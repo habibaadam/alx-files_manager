@@ -76,3 +76,41 @@ exports.postUpload = async function postUpload(req, res) {
     );
   }
 };
+
+exports.getShow = async function getShow(req, res) {
+  const token = req.get('X-token');
+  const key = `auth_${token}`;
+  const userId = await redisClient.get(key);
+
+  if (!userId) {
+    res.status(401).json({ error: 'Unauthorized' });
+    return;
+  }
+
+  const fileId = req.params.id;
+  const file = await dbClient.getFile(fileId);
+
+  if (!file || file.userId.toString() !== userId) {
+    res.status(404).json({ error: 'Not found' });
+    return;
+  }
+
+  res.json(file);
+};
+
+exports.getIndex = async function getIndex(req, res) {
+  const token = req.get('X-token');
+  const key = `auth_${token}`;
+  const userId = await redisClient.get(key);
+
+  if (!userId) {
+    res.status(401).json({ error: 'Unauthorized' });
+    return;
+  }
+
+  const parentId = req.query.parentId || 0;
+  const page = req.query.page || 0;
+
+  const files = await dbClient.getFilesByUserAndParent(userId, parentId, page);
+  res.json(files);
+};
