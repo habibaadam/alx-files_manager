@@ -80,12 +80,23 @@ class DBClient {
   }
 
   async findFile(parentId) {
-    // checks and finds a file based on its parentId
-    const database = this.client.db(this.database);
-    const collection = database.collection('files');
-    const existingFile = await collection.findOne({ _id: ObjectId(parentId) });
-    return existingFile;
-  }
+      // checks and finds a file based on its parentId
+      const database = this.client.db(this.database);
+      const collection = database.collection('files');
+      const existingFile = await collection.findOne({ _id: ObjectId(parentId) });
+      return existingFile;
+    }
+
+  // doing pagination
+  async getFilesByUserAndParent(userId, parentId = 0, page = 0) {
+  const database = this.client.db(this.database);
+  const collection = database.collection('files');
+  const files = await collection.find({ user: userId, parentId: parentId })
+    .skip(page * 20)
+    .limit(20)
+    .toArray();
+  return files;
+};
 }
 
 const dbClient = new DBClient();
