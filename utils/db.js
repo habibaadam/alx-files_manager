@@ -99,11 +99,19 @@ class DBClient {
   async getFilesByUserAndParent(userId, parentId = 0, page = 0) {
     const database = this.client.db(this.database);
     const collection = database.collection('files');
-    const files = await collection.find({ userId, parentId })
-      .skip(page * 20)
-      .limit(20)
-      .toArray();
+    const files = await collection.aggregate([
+      { $match: { userId, parentId } },
+      { $skip: page * 20 },
+      { $limit: 20 },
+    ]).toArray();
     return files;
+  }
+
+  async updateFile(fileId, update) {
+    // updates a file based on the fileid and update statement
+    const database = this.client.db(this.database);
+    const collection = database.collection('files');
+    await collection.updateOne({ _id: ObjectId(fileId) }, { $set: update });
   }
 }
 
